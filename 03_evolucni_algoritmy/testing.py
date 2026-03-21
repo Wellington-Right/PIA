@@ -234,12 +234,14 @@ def loadproblem(filepath, delimiter=","):
     Processed = sorted(data)
     weights = [triple[2] for triple in Processed]
     costs = [triple[1] for triple in Processed]
-    minrat = Processed[0][0]
+    ratios = [triple[1] for triple in Processed]
     leng = len(costs)
     sumc = sum(costs)
     sumw = sum(weights)
+    minrat = Processed[0][0]
     maxrat = Processed[-1][0]
     avgrat = sumc/sumw
+    medrat = np.median(ratios)
     problemspecs = {"max_weight" : Limit,
                     "item_weights" : weights,
                     "item_values" : costs, 
@@ -247,10 +249,21 @@ def loadproblem(filepath, delimiter=","):
                     "minratio" : minrat, 
                     "maxratio" : maxrat, 
                     "avgratio" : avgrat,
-                    "GoodProb": max((Limit/(sumw/leng))/leng,1/leng)/2
+                    "medratio" : medrat,
+                    "GoodProb": (np.float64(1)/leng) # max(np.float64(np.median(weights))/Limit,1/leng)/2
                     }
     return problemspecs
-
+# Problem Definition Dictionary Includes:
+#   - max_weight        : the total weight limit
+#   - item_weights      : the list of all item weights (sorted by their ratio)
+#   - item_values       : the list of all item costs (sorted by their ratio)
+#   - individual_size   : the total amount of items (ergo individual count)
+#   - minratio          : the average of the ratio of cost to weight
+#   - maxratio          : the average of the ratio of cost to weight
+#   - avgratio          : the average of the ratio of cost to weight
+#   - medratio          : the median  of the ratio of cost to weight
+#   - GoodProb          : very a rough estimate for how likely a bit is in the solution
+# do note that the good prob is literally just 1/individual_size scaled by a constant
 
 print("Loading_Problems")
 problemA = loadproblem(r"03_evolucni_algoritmy\knapsack\debug_10.txt")
@@ -264,13 +277,19 @@ testspec = {
     "Pop_char" : (50,200,0),
     "fitness_func" : underflowfitness,
     "populate_func" : random_population, 
-    "selector_func" : Apply(normalalteredselection,{"modyf": identity, "normaltop": True, "normalbot" : False}), 
+    "selector_func" : Apply(normalalteredselection,{"modyf": np.log10, "normaltop": True, "normalbot" : True}), 
     "cross_func" : crossover,
     "mutate_func" : mutation, 
     "demutate_func" : identity,
 }
 results = RunExperiment(problemD, testspec)
 print(results[0])
+
+plt.plot(results[2])
+plt.ylabel("Fitness")
+plt.xlabel("Generation")
+plt.show()
+
 
 # this should hold all varibles along with list of their possible values, and for those list of all their possible specifications
 ExperimentVariables = [
