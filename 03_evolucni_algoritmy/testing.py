@@ -349,6 +349,7 @@ def RunExperiment(ProblemSpecs, Specs, report_interval=10):
     Experiment.Run(ReportInterval=report_interval)
     results = Experiment.GiveStats()
     return simplefitness(results[1], **ProblemSpecs),results[1],results[2]
+    # bestfit, bestsolve, bestgraph
 
 def loadproblem(filepath):
     data = []
